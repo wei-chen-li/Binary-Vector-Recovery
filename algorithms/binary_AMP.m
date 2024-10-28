@@ -36,7 +36,7 @@ for iter = 1:max_iters
     
         eta_c_to_l = eta_0 + sum(eta_c_from,3) - eta_c_from(:,:,l);
     
-        eta_l = M_project(Phi_l, y_l, beta_hat(l), eta_c_to_l, vecnormsqr_Phi(:,:,l));
+        eta_l = M_project(Phi_l, y_l, beta_hat(l), eta_c_to_l);
         x_hat = 1 ./ (1 + exp(-eta_l));
     
         eta_c_from(:,:,l) = clip(eta_l - eta_c_to_l, -1e12, 1e12);
@@ -55,7 +55,7 @@ end
 end
 
 
-function eta_l = M_project(Phi_l, y_l, beta_l, eta_c_to_l, vecnormsqr_Phi_l)
+function eta_l = M_project(Phi_l, y_l, beta_l, eta_c_to_l)
 
 [M,N] = size(Phi_l);
 x = 0.5 * ones(N,1);
@@ -66,11 +66,9 @@ for iter = 1:10
         notj = [1:j-1 j+1:N];
 
         term1 = y_l - Phi_l(:,notj) * x(notj);
-        term2 = vecnormsqr_Phi_l(:,notj) * (x(notj) .* (1-x(notj)));
-        term3 = dot(x(notj), eta_c_to_l(notj));
 
-        z_j0 = -0.5 * beta_l * ( norm(term1             )^2 + term2 ) + term3;
-        z_j1 = -0.5 * beta_l * ( norm(term1 - Phi_l(:,j))^2 + term2 ) + term3 + eta_c_to_l(j);
+        z_j0 = -0.5 * beta_l * norm(term1             )^2;
+        z_j1 = -0.5 * beta_l * norm(term1 - Phi_l(:,j))^2 + eta_c_to_l(j);
         x(j) = 1 / (1 + exp(z_j0 - z_j1));
     end
 
