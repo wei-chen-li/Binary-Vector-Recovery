@@ -25,7 +25,7 @@ vecnormsqr_Phi = sum(Phi.^2, 1);
 
 eta_0 = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
 eta_c_from = zeros(N,1,L);
-beta_hat = zeros(1,1,L);
+beta_hat = 10 * ones(1,1,L);
 
 for iter = 1:max_iters
     if exist('x_hat','var'), x_hat_old = x_hat; else, x_hat_old = inf; end
