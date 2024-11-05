@@ -1,5 +1,5 @@
 % -------------------------------------------------------------------------
-% x_hat = binary_AMP(Phi, y, 'a',a, 'b',b)
+% x_hat = binary_AMP(Phi, y, 'beta',beta, 'a',a, 'b',b)
 %
 % Approximate message passing for binary vector recovery
 % -------------------------------------------------------------------------
@@ -11,11 +11,13 @@ function x_hat = binary_AMP(Phi,y, varargin)
 
 p = inputParser;
 addParameter(p, 'MaxIterations', 100, @isscalar)
+addParameter(p, 'beta', NaN)
 addParameter(p, 'a', 0.4, @isscalar)
 addParameter(p, 'b', 0.4, @isscalar)
 parse(p, varargin{:});
 
 max_iters = p.Results.MaxIterations;
+beta_hat = p.Results.beta;
 a = p.Results.a;
 b = p.Results.b;
 clear p
@@ -25,7 +27,8 @@ vecnormsqr_Phi = sum(Phi.^2, 1);
 
 eta_0 = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
 eta_c_from = zeros(N,1,L);
-beta_hat = 10 * ones(1,1,L);
+
+if isnan(beta_hat), beta_hat = 1e2 * ones(1,1,L); end
 
 for iter = 1:max_iters
     if exist('x_hat','var'), x_hat_old = x_hat; else, x_hat_old = inf; end

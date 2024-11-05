@@ -10,7 +10,7 @@
 function x_star = sparse_CVX(Phi, y, varargin)
 
 p = inputParser;
-addParameter(p, 'lambda', 1, @isscalar)
+addParameter(p, 'lambda', NaN, @isscalar)
 parse(p, varargin{:});
 
 lambda = p.Results.lambda;
@@ -18,10 +18,21 @@ clear p
 
 [M,N] = size(Phi);
 
-cvx_begin quiet
-    variable x(N)
-    minimize( (Phi * x - y)' * (Phi * x - y) + lambda * norm(x, 1) )
-cvx_end
+if isnan(lambda)
+    cvx_begin quiet
+        variable x(N)
+        minimize( norm(x,1) )
+        subject to
+            Phi * x == y
+    cvx_end
+else
+    cvx_begin quiet
+        variable x(N)
+        minimize( (Phi * x - y)' * (Phi * x - y) + lambda * norm(x,1) )
+        subject to
+            Phi * x == y
+    cvx_end
+end
 
 x_star = x;
 

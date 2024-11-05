@@ -18,7 +18,7 @@ clear p
 
 [M,N] = size(Phi);
 
-beta = 1e3;
+beta = 1e5;
 alpha = ones(N,1);
 
 for iter = 1:max_iters
