@@ -10,7 +10,7 @@
 function x_star = binary_CVX(Phi, y, varargin)
 
 p = inputParser;
-addParameter(p, 'MaxIterations', 100, @isscalar)
+addParameter(p, 'MaxIterations', 5, @isscalar)
 addParameter(p, 'beta', NaN)
 parse(p, varargin{:});
 
@@ -34,7 +34,7 @@ else
 
     for iter = 1:max_iters
         Phi_tilde = reshape(permute(Phi .* sqrt(beta), [1 3 2]), [M*L N]);
-        y_tilde =   reshape(permute(Phi .* sqrt(beta), [1 3 2]), [M*L 1]);
+        y_tilde   = reshape(permute(y   .* sqrt(beta), [1 3 2]), [M*L 1]);
 
         if exist('x','var'), x_old = x; else, x_old = Inf; end
         
@@ -47,7 +47,7 @@ else
         cvx_end
 
         for l = 1:L
-            beta(l) = M / norm(y - Phi(:,:,l) * x)^2;
+            beta(l) = M / norm(y(:,:,l) - Phi(:,:,l) * x)^2;
             beta(l) = min(beta(l), 1e10);
         end
 

@@ -29,6 +29,7 @@ eta_0 = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
 eta_c_from = zeros(N,1,L);
 
 if isnan(beta_hat), beta_hat = 1e2 * ones(1,1,L); end
+beta_hat = min(beta_hat, 1e10);
 
 for iter = 1:max_iters
     if exist('x_hat','var'), x_hat_old = x_hat; else, x_hat_old = inf; end
