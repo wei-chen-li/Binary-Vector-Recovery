@@ -10,13 +10,15 @@
 function x_hat = binary_AMP(Phi,y, varargin)
 
 p = inputParser;
-addParameter(p, 'MaxIterations', 100, @isscalar)
+addParameter(p, 'MaxIterations', 30, @isscalar)
+addParameter(p, 'MaxIterationsInnerLoop', 100, @isscalar)
 addParameter(p, 'beta', NaN)
 addParameter(p, 'a', 0.4, @isscalar)
 addParameter(p, 'b', 0.4, @isscalar)
 parse(p, varargin{:});
 
 max_iters = p.Results.MaxIterations;
+max_iters_inner = p.Results.MaxIterationsInnerLoop;
 beta_hat = p.Results.beta;
 a = p.Results.a;
 b = p.Results.b;
@@ -40,7 +42,7 @@ for iter = 1:max_iters
     
         eta_c_to_l = eta_0 + sum(eta_c_from,3) - eta_c_from(:,:,l);
     
-        eta_l = M_project(Phi_l, y_l, beta_hat(l), eta_c_to_l);
+        eta_l = M_project(Phi_l, y_l, beta_hat(l), eta_c_to_l, max_iters_inner);
         x_hat = 1 ./ (1 + exp(-eta_l));
     
         eta_c_from(:,:,l) = clip(eta_l - eta_c_to_l, -1e12, 1e12);
@@ -59,12 +61,12 @@ end
 end
 
 
-function eta_l = M_project(Phi_l, y_l, beta_l, eta_c_to_l)
+function eta_l = M_project(Phi_l, y_l, beta_l, eta_c_to_l, max_iters_inner)
 
 [M,N] = size(Phi_l);
-x = 0.5 * ones(N,1);
+x = 1 ./ (1 + exp(-eta_c_to_l));
 
-for iter = 1:10
+for iter = 1:max_iters_inner
     x_old = x;
     for j = 1:N
         notj = [1:j-1 j+1:N];

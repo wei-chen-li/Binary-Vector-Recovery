@@ -12,10 +12,12 @@ function x_star = binary_CVX(Phi, y, varargin)
 p = inputParser;
 addParameter(p, 'MaxIterations', 5, @isscalar)
 addParameter(p, 'beta', NaN)
+addParameter(p, 'c', 1.5, @(c) 0 <= c && c <= 4)
 parse(p, varargin{:});
 
 max_iters = p.Results.MaxIterations;
 beta = p.Results.beta;
+c = p.Results.c;
 clear p
 
 [M,N,L] = size(Phi);
@@ -42,7 +44,7 @@ else
             variable x(N)
             minimize( norm(x,1) )
             subject to
-                (Phi_tilde * x - y_tilde)' * (Phi_tilde * x - y_tilde) <= 2.5 * M*L;
+                (Phi_tilde * x - y_tilde)' * (Phi_tilde * x - y_tilde) <= c * M*L;
                 0 <= x <= 1
         cvx_end
 
