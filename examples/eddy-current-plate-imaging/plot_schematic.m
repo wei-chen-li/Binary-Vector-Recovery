@@ -6,8 +6,8 @@ figure
 model = myModel;
 drawCoil()
 drawPlate(model)
-drawEddyCurrent(1.5)
-% drawMesh(model.voxels.nodes)
+% drawEddyCurrent(1.5)
+drawMesh(model.voxels.nodes)
 
 for k = 1:size(model.sensors.positions,2)
     drawSensor(model.sensors.positions(:,k), model.sensors.axes(:,k))
@@ -16,7 +16,7 @@ end
 view(-30,20)
 camtarget([0 0 0])
 camlight
-camva(4.6)
+camva(1)
 
 
 function drawCoil(alpha)
@@ -43,22 +43,17 @@ end
 
 function drawPlate(model, color, alpha)
 
-w = model.comsol.truncate_width;
 if nargin < 2, color = [0.6 0.6 0.6]; end
 if nargin < 3, alpha = 0.5; end
 
-z = 0;
-for k = 1:length(model.layers)-1
-    t = model.layers{k}.thickness;
-    nodes = table2array(combinations([-w/2 w/2], [-w/2 w/2], [z-t z]))';
-    z = z - t;
+w = model.comsol.truncate_width;
+nodes = table2array(combinations([-w/2 w/2], [-w/2 w/2], [-model.plate.thickness 0]))';
 
-    faces = [[1 5 6 2]; [1 2 4 3]];
-    patch('Faces',faces, 'Vertices',nodes', 'FaceColor',color, 'LineStyle','none', 'FaceAlpha',1)
+faces = [[1 5 6 2]; [1 2 4 3]];
+patch('Faces',faces, 'Vertices',nodes', 'FaceColor',color, 'LineStyle','none', 'FaceAlpha',1)
 
-    faces = [[2 6 8 4]];
-    patch('Faces',faces, 'Vertices',nodes', 'FaceColor',color, 'LineStyle','none', 'FaceAlpha',alpha)
-end
+faces = [[2 6 8 4]];
+patch('Faces',faces, 'Vertices',nodes', 'FaceColor',color, 'LineStyle','none', 'FaceAlpha',alpha)
 
 end
 

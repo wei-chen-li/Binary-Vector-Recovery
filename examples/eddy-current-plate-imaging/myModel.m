@@ -13,9 +13,7 @@ coil.type = 'arbitrary';
 coil.B  = @(x,y,z) B_func (r,J,dv, x,y,z);
 coil.Bz = @(x,y,z) Bz_func(r,J,dv, x,y,z);
 
-layers = {};
-layers{end+1} = struct('sigma',3.774e7, 'mur',1, 'thickness',3e-3); % Aluminum
-layers{end+1} = struct('sigma',0      , 'mur',1, 'thickness',Inf ); % air
+plate = struct('sigma',3.774e7, 'mur',1, 'thickness',2e-3); % Aluminum
 
 x = linspace(-14e-3, 14e-3, 8);
 y = linspace(-14e-3, 14e-3, 8);
@@ -27,31 +25,23 @@ sensors.axes(2,:) = 1;
 
 x = linspace(-15e-3, 15e-3, 61);
 y = linspace(-15e-3, 15e-3, 61);
-z = linspace(-3e-3, 0, 7);
+z = linspace(-2e-3, 0, 5);
 mesh = BuildHexMesh(x, y, z, 1);
 
-d = 0;
-sigma = zeros(1, size(mesh.elems_center,2));
-mur   =  ones(1, size(mesh.elems_center,2));
-for k = 1:length(layers)
-    d2 = d - layers{k}.thickness;
-    z = mesh.elems_center(3,:);
-    sigma(d >= z & z > d2) = layers{k}.sigma;
-    mur  (d >= z & z > d2) = layers{k}.mur;
-    d = d2;
-end
+sigma = ones(1, size(mesh.elems_center,2)) * plate.sigma;
+mur   = ones(1, size(mesh.elems_center,2)) * plate.mur;
 
 comsol.truncate_width = 150e-3; % (m)
 comsol.truncate_maxz  =  60e-3; % (m)
 comsol.coil_filename = comsol_coil_fname;
 
-Model.layers  = layers;
+Model.plate   = plate;
 Model.coil    = coil;
 Model.sensors = sensors;
 Model.comsol  = comsol;
 Model.voxels  = struct('center',mesh.elems_center, 'sigma',sigma, 'mur',mur, 'nodes',mesh.nodes, 'elems',mesh.elems);
 Model.Sensitivity = @(f)ComputeSensitivity(layers, mesh.gauss_points, mesh.gauss_weights, coil, sensors.positions, sensors.axes, f);
-clear global coilAbovePlate
+clear global coilAbovePlate 
 
 end
 
@@ -239,7 +229,11 @@ end
 
 end
 
-function [S_sigma, S_mu] = ComputeSensitivity(layers, gauss_points, gauss_weights, coil, sensor_positions, sensor_axes, freq)
+function [S_sigma, S_mu] = ComputeSensitivity(plate, gauss_points, gauss_weights, coil, sensor_positions, sensor_axes, freq)
+
+layers = {};
+layers{end+1} = plate;
+layers{end+1} = struct('sigma',0, 'mur',1, 'thickness',Inf); % air
 
 omega = 2*pi * freq;
 x = gauss_points(1,:,:);
