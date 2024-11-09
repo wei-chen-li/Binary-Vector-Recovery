@@ -6,8 +6,8 @@ figure
 model = myModel;
 drawCoil()
 drawPlate(model)
-% drawEddyCurrent(1.5)
-drawMesh(model.voxels.nodes)
+drawEddyCurrent(model)
+% drawMesh(model.voxels.nodes)
 
 for k = 1:size(model.sensors.positions,2)
     drawSensor(model.sensors.positions(:,k), model.sensors.axes(:,k))
@@ -58,11 +58,25 @@ patch('Faces',faces, 'Vertices',nodes', 'FaceColor',color, 'LineStyle','none', '
 end
 
 
-function drawEddyCurrent(linewidth)
+function drawEddyCurrent(model, linewidth)
 
-if nargin < 1, linewidth = 1; end
+addpath("functions\")
 
-load('assets\eddy-current.mat', 'x','y','Jx','Jy')
+if nargin < 2, linewidth = 1.5; end
+
+w = model.comsol.truncate_width;
+
+layers = {};
+layers{end+1} = model.plate;
+layers{end+1} = struct('sigma',0, 'mur',1, 'thickness',Inf); % air
+coilAbovePlate = CoilAbovePlate(model.coil, layers, 'TruncateWidth',w);
+
+x = linspace(-w/2, w/2, 61);
+[x,y] = ndgrid(x,x);
+z = -model.plate.thickness / 2 * ones(size(x));
+
+[Jx, Jy] = coilAbovePlate.EvaluateField({'Jx' 'Jy'}, x,y,z, 2*pi*1000);
+
 quiver(x, y, imag(Jx), imag(Jy), 'Color',[1 0 0], 'LineWidth',linewidth)
 
 end

@@ -17,7 +17,7 @@ plate = struct('sigma',3.774e7, 'mur',1, 'thickness',2e-3); % Aluminum
 
 x = linspace(-14e-3, 14e-3, 8);
 y = linspace(-14e-3, 14e-3, 8);
-z = 2e-3;
+z = 0.5e-3;
 [x,y,z] = ndgrid(x, y, z);
 sensors.positions = [reshape(x,1,[]); reshape(y,1,[]); reshape(z,1,[])];
 sensors.axes = zeros(size(sensors.positions));
@@ -244,7 +244,7 @@ num_elems = size(gauss_points, 3);
 
 global coilAbovePlate
 if isempty(coilAbovePlate)
-    coilAbovePlate = CoilAbovePlate3D(coil, layers, 'TruncateWidth',0.15);
+    coilAbovePlate = CoilAbovePlate(coil, layers, 'TruncateWidth',0.15);
 end
 
 if nargout >= 1
