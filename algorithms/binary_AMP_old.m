@@ -27,9 +27,8 @@ clear p
 [M,N,L] = size(Phi);
 vecnormsqr_Phi = sum(Phi.^2, 1);
 
-eta_c_to_r = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
-
-x_hat = 0.5 * ones(N,1);
+eta_0 = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
+eta_c_from = zeros(N,1,L);
 
 if isnan(beta_hat), beta_hat = 1e2 * ones(1,1,L); end
 beta_hat = min(beta_hat, 1e10);
@@ -37,12 +36,22 @@ beta_hat = min(beta_hat, 1e10);
 for iter = 1:max_iters
     if exist('x_hat','var'), x_hat_old = x_hat; else, x_hat_old = inf; end
 
-    x_hat = M_project(Phi, y, beta_hat, eta_c_to_r, 0.5*ones(N,1), max_iters_inner);
-
-    for l = 1:L    
-        beta_hat(l) = M / ( norm(y(:,:,l) - Phi(:,:,l) * x_hat)^2 + vecnormsqr_Phi(:,:,l) * (x_hat .* (1-x_hat)) );
+    for l = 1:L
+        Phi_l = Phi(:,:,l);
+        y_l = y(:,:,l);
+    
+        eta_c_to_l = eta_0 + sum(eta_c_from,3) - eta_c_from(:,:,l);
+    
+        eta_l = M_project(Phi_l, y_l, beta_hat(l), eta_c_to_l, max_iters_inner);
+        x_hat = 1 ./ (1 + exp(-eta_l));
+    
+        eta_c_from(:,:,l) = clip(eta_l - eta_c_to_l, -1e12, 1e12);
+    
+        beta_hat(l) = M / ( norm(y_l - Phi_l * x_hat)^2 + vecnormsqr_Phi(:,:,l) * (x_hat .* (1-x_hat)) );
         beta_hat(l) = min(beta_hat(l), 1e10);
     end
+
+    x_hat = 1 ./ ( 1 + exp(-eta_0 - sum(eta_c_from,3)) );
 
     if norm(x_hat - x_hat_old, inf) < 1e-8
         break
@@ -52,29 +61,28 @@ end
 end
 
 
-function x_hat = M_project(Phi, y, beta_hat, eta_c_to_r, x_hat_init, max_iters_inner)
+function eta_l = M_project(Phi_l, y_l, beta_l, eta_c_to_l, max_iters_inner)
 
-[M,N,L] = size(Phi);
-beta_hat = reshape(beta_hat, 1,1,L);
-
-x_hat = x_hat_init;
+[M,N] = size(Phi_l);
+x = 1 ./ (1 + exp(-eta_c_to_l));
 
 for iter = 1:max_iters_inner
-    x_hat_old = x_hat;
-
+    x_old = x;
     for j = 1:N
         notj = [1:j-1 j+1:N];
 
-        term1 = y - pagemtimes(Phi(:,notj,:), x_hat(notj));
+        term1 = y_l - Phi_l(:,notj) * x(notj);
 
-        z_j0 = sum(-0.5 * beta_hat .* vecnorm(term1             ).^2, 3);
-        z_j1 = sum(-0.5 * beta_hat .* vecnorm(term1 - Phi(:,j,:)).^2, 3) + eta_c_to_r(1);
-        x_hat(j) = 1 / (1 + exp(z_j0 - z_j1));
+        z_j0 = -0.5 * beta_l * norm(term1             )^2;
+        z_j1 = -0.5 * beta_l * norm(term1 - Phi_l(:,j))^2 + eta_c_to_l(j);
+        x(j) = 1 / (1 + exp(z_j0 - z_j1));
     end
 
-    if norm(x_hat - x_hat_old, inf) < 1e-6
+    if norm(x - x_old, inf) < 1e-3
         break
     end
 end
+
+eta_l = log(x ./ (1 - x));
 
 end
