@@ -29,8 +29,6 @@ vecnormsqr_Phi = sum(Phi.^2, 1);
 
 eta_c_to_r = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
 
-x_hat = 0.5 * ones(N,1);
-
 if isnan(beta_hat), beta_hat = 1e2 * ones(1,1,L); end
 beta_hat = min(beta_hat, 1e10);
 
