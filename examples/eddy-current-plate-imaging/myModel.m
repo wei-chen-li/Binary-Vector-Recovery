@@ -40,7 +40,7 @@ Model.coil    = coil;
 Model.sensors = sensors;
 Model.comsol  = comsol;
 Model.voxels  = struct('center',mesh.elems_center, 'sigma',sigma, 'mur',mur, 'nodes',mesh.nodes, 'elems',mesh.elems);
-Model.Sensitivity = @(f)ComputeSensitivity(layers, mesh.gauss_points, mesh.gauss_weights, coil, sensors.positions, sensors.axes, f);
+Model.Sensitivity = @(f)ComputeSensitivity(plate, mesh.gauss_points, mesh.gauss_weights, coil, sensors.positions, sensors.axes, f);
 clear global coilAbovePlate 
 
 end
@@ -262,7 +262,7 @@ for i = 1:num_sensors
     sensor.type = 'MagneticSensor';
     sensor.position = [0 0 sensor_positions(3,i)];
     sensor.axis = sensor_axes(:,i);
-    sensorAbovePlate = CoilAbovePlate3D(sensor, layers);
+    sensorAbovePlate = CoilAbovePlate(sensor, layers);
 
     if nargout >= 1
         [Ex,Ey] = sensorAbovePlate.EvaluateField({'Ex' 'Ey'}, ...
