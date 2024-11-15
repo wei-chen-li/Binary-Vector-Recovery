@@ -15,8 +15,8 @@ coil.Bz = @(x,y,z) Bz_func(r,J,dv, x,y,z);
 
 plate = struct('sigma',3.774e7, 'mur',1, 'thickness',2e-3); % Aluminum
 
-x = linspace(-14e-3, 14e-3, 8);
-y = linspace(-14e-3, 14e-3, 8);
+x = linspace(-14e-3, 14e-3, 29);
+y = linspace(-14e-3, 14e-3, 29);
 z = 0.5e-3;
 [x,y,z] = ndgrid(x, y, z);
 sensors.positions = [reshape(x,1,[]); reshape(y,1,[]); reshape(z,1,[])];
