@@ -11,11 +11,13 @@ function x_star = binary_CVX(Phi, y, varargin)
 
 p = inputParser;
 addParameter(p, 'MaxIterations', 5, @isscalar)
+addParameter(p, 'PrintDetails', false, @islogical)
 addParameter(p, 'beta', NaN)
 addParameter(p, 'c', 1.5, @(c) 0 <= c && c <= 4)
 parse(p, varargin{:});
 
 max_iters = p.Results.MaxIterations;
+print_details = p.Results.PrintDetails;
 beta = p.Results.beta;
 c = p.Results.c;
 clear p
@@ -23,7 +25,7 @@ clear p
 [M,N,L] = size(Phi);
 
 if L == 1 && isnan(beta)
-    cvx_begin quiet
+    if print_details, cvx_begin; else, cvx_begin quiet; end
         variable x(N)
         minimize( norm(x,1) )
         subject to
@@ -33,14 +35,15 @@ if L == 1 && isnan(beta)
 else
     if L == 1, max_iters = 1; end
     if isnan(beta), beta = 1e2 * ones(1,1,L); end
+    beta = reshape(beta, [1 1 L]);
 
     for iter = 1:max_iters
         Phi_tilde = reshape(permute(Phi .* sqrt(beta), [1 3 2]), [M*L N]);
         y_tilde   = reshape(permute(y   .* sqrt(beta), [1 3 2]), [M*L 1]);
 
         if exist('x','var'), x_old = x; else, x_old = Inf; end
-        
-        cvx_begin quiet
+
+        if print_details, cvx_begin; else, cvx_begin quiet; end
             variable x(N)
             minimize( norm(x,1) )
             subject to
