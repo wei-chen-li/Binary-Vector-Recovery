@@ -7,7 +7,7 @@
 % y:   M×1×L array
 % x_hat: N×1 vector
 %--------------------------------------------------------------------------
-function x_hat = binary_MF(Phi, y, varargin)
+function [x_hat, beta_hat] = binary_MF(Phi, y, varargin)
 
 p = inputParser;
 addParameter(p, 'MaxIterations', 100, @isscalar)
