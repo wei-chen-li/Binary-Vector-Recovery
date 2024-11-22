@@ -16,6 +16,7 @@ sensors.placement_phi = phi;
 sensors.placement_rho = 19e-3 * ones(size(phi));
 
 comsol.truncate_length = 200e-3;
+comsol.sensor_size = 1e-3;
 
 Model.coil    = coil;
 Model.pipe    = pipe;
