@@ -6,14 +6,15 @@ hold on
 axis equal off
 
 Model = myModel;
-drawPipe(Model.pipe, 100e-3)
-drawCoil(Model.coil)
-drawSensors(Model.sensors)
-drawMesh(Model.mesh)
+drawSensitivity(Model)
+% drawPipe(Model.pipe, 100e-3)
+% drawCoil(Model.coil)
+% drawSensors(Model.sensors)
+% drawMesh(Model.mesh)
 
 view(-30,30)
 camtarget([0 0 0])
-camlight
+% camlight
 camva(6)
 
 
@@ -120,6 +121,51 @@ for q = 1:size(gauss_nodes,3)
     plot3(gauss_nodes(1,n,q), gauss_nodes(2,n,q), gauss_nodes(3,n,q), 'k.', 'MarkerSize',3)
 end
 end
+
+end
+
+
+function drawSensitivity(Model)
+
+addpath("functions\")
+
+freq = 1000;
+mesh_size = 5;
+
+num_sensors = length(Model.sensors.placement_phi);
+shift = 15;
+
+rho = (Model.pipe.inner_diameter + Model.pipe.outer_diameter) / 4;
+phi = linspace(0, 2*pi, num_sensors*shift+1); phi = phi(1:end-1);
+z = linspace(-Model.comsol.truncate_length/2, Model.comsol.truncate_length/2, 401);
+
+[phi,z,rho] = ndgrid(phi,z,rho);
+
+Model = ComsolInterface('Build', Model);
+ComsolInterface('Solve', Model, freq, mesh_size)
+[Ephi1, Ez1] = ComsolInterface('EvaluateField', Model, {'Ephi' 'Ez'}, rho,phi,z);
+E1 = cat(3, Ephi1, Ez1);
+
+Model = ComsolInterface('Build', Model, 'sensor1');
+ComsolInterface('Solve', Model, freq, mesh_size)
+[Ephi2, Ez2] = ComsolInterface('EvaluateField', Model, {'Ephi' 'Ez'}, rho,phi,z);
+E2 = cat(3, Ephi2, Ez2);
+
+S_sigma = dot(E1, E2, 3);
+
+C = 0;
+for i = 1:num_sensors
+    C = C + abs(S_sigma).^2;
+    S_sigma = circshift(S_sigma, shift, 1);
+end
+
+[x_,y_,z_] = evalCyl2simCart(rho,phi,z);
+x_ = [x_; x_(1,:)];
+y_ = [y_; y_(1,:)];
+z_ = [z_; z_(1,:)];
+C  = [C ; C(1,:) ];
+
+surf(x_,y_,z_,C, 'LineStyle','none', 'FaceColor','flat')
 
 end
 
