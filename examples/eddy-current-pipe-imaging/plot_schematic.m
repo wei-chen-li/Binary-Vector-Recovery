@@ -5,10 +5,11 @@ figure
 hold on
 axis equal off
 
-model = myModel;
-drawPipe(model.pipe, 100e-3)
-drawCoil(model.coil)
-drawSensors(model.sensors)
+Model = myModel;
+drawPipe(Model.pipe, 100e-3)
+drawCoil(Model.coil)
+drawSensors(Model.sensors)
+drawMesh(Model.mesh)
 
 view(-30,30)
 camtarget([0 0 0])
@@ -50,7 +51,6 @@ faces = [[1 3 7 5]; [2 6 8 4]; [1 5 6 2]; [3 4 8 7]; [1 2 4 3]; [5 7 8 6]];
 
 for i = 1:numel(rho)
     pos = [0 -rho(i)*cos(phi(i)) rho(i)*sin(phi(i))];
-    disp(pos)
     axis = [0 sin(phi(i)) cos(phi(i))];
 
     p2 = reshape(axis,3,1) / norm(axis);
@@ -94,4 +94,38 @@ end
 
 set(surfaces, 'FaceColor',color, 'FaceAlpha',alpha, 'LineStyle','none');
 
+end
+
+
+function drawMesh(mesh)
+
+voxel_corners = mesh.voxel_corners;
+[x,y,z] = evalCyl2simCart(voxel_corners(1,:,:), voxel_corners(2,:,:), voxel_corners(3,:,:));
+voxel_corners = cat(1, x,y,z);
+
+gauss_nodes = mesh.gauss_nodes;
+[x,y,z] = evalCyl2simCart(gauss_nodes(1,:,:), gauss_nodes(2,:,:), gauss_nodes(3,:,:));
+gauss_nodes = cat(1, x,y,z);
+
+for n = 1:size(voxel_corners,2)
+    x = voxel_corners(1,n,:);
+    y = voxel_corners(2,n,:);
+    z = voxel_corners(3,n,:);
+    plot3([x(1) x(2)], [y(1) y(2)], [z(1) z(2)], 'r')
+    plot3([x(1) x(4)], [y(1) y(4)], [z(1) z(4)], 'g')
+    plot3([x(1) x(5)], [y(1) y(5)], [z(1) z(5)], 'b')
+end
+for n = 5:100:size(voxel_corners,2)
+for q = 1:size(gauss_nodes,3)
+    plot3(gauss_nodes(1,n,q), gauss_nodes(2,n,q), gauss_nodes(3,n,q), 'k.', 'MarkerSize',3)
+end
+end
+
+end
+
+
+function [x_,y_,z_] = evalCyl2simCart(rho,phi,z)
+x_ = -z;
+y_ = -rho .* cos(phi);
+z_ =  rho .* sin(phi);
 end
