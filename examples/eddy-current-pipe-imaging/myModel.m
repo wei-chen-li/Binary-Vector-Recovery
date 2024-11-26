@@ -1,27 +1,27 @@
 function Model = myModel
 
 coil = {};
-coil.inner_radius = 18e-3;
-coil.outer_radius = 20e-3;
+coil.inner_radius = 7e-3;
+coil.outer_radius = 9e-3;
 coil.height = 4e-3;
-coil.spacing = 16e-3;
+coil.spacing = 14e-3;
 coil.turns = 20;
 
 pipe = struct('sigma',3.774e7, 'mur',1);
-pipe.inner_diameter = 45e-3;
-pipe.outer_diameter = 50e-3;
+pipe.inner_diameter = 21e-3;
+pipe.outer_diameter = 25e-3;
 
-num_sensors = 20;
+num_sensors = 10;
 phi = linspace(0, 2*pi, num_sensors+1); phi = phi(1:end-1);
 sensors.placement_phi = phi;
-sensors.placement_rho = 19e-3 * ones(size(phi));
+sensors.placement_rho = 6e-3 * ones(size(phi));
 
-comsol.truncate_length = 200e-3;
+comsol.truncate_length = 100e-3;
 comsol.sensor_size = 1e-3;
 
-rho = [22.5 25] * 1e-3;
-phi = linspace(0, 2*pi, 101);
-z = (-9:1.5:-3) * 1e-3;
+rho = linspace(10.5e-3, 12.5e-3, 5);
+phi = linspace(0, 2*pi, 121);
+z = (-10:0.5:-6) * 1e-3;
 [voxel_corners_1, voxel_volumes_1, gauss_nodes_1] = buildVoxels(rho, phi, z);
 [voxel_corners_2, voxel_volumes_2, gauss_nodes_2] = buildVoxels(rho, phi, flip(-z));
 voxel_corners = [voxel_corners_1 voxel_corners_2];
