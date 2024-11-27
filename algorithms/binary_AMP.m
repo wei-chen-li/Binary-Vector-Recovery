@@ -29,17 +29,15 @@ vecnormsqr_Phi = sum(Phi.^2, 1);
 
 eta_c_to_r = log(beta(a+1,b) / beta(a,b+1)) * ones(N,1);
 
-if isnan(beta_hat), beta_hat = 1e2 * ones(1,1,L); end
-beta_hat = min(beta_hat, 1e10);
+if isnan(beta_hat), beta_hat = 1e5 * ones(1,1,L); end
 
 for iter = 1:max_iters
     if exist('x_hat','var'), x_hat_old = x_hat; else, x_hat_old = inf; end
 
     x_hat = M_project(Phi, y, beta_hat, eta_c_to_r, 0.5*ones(N,1), max_iters_inner);
 
-    for l = 1:L    
+    for l = 1:L
         beta_hat(l) = M / ( norm(y(:,:,l) - Phi(:,:,l) * x_hat)^2 + vecnormsqr_Phi(:,:,l) * (x_hat .* (1-x_hat)) );
-        beta_hat(l) = min(beta_hat(l), 1e10);
     end
 
     if norm(x_hat - x_hat_old, inf) < 1e-8
@@ -60,10 +58,10 @@ x_hat = x_hat_init;
 for iter = 1:max_iters_inner
     x_hat_old = x_hat;
 
-    for j = 1:N
-        notj = [1:j-1 j+1:N];
+    Phi_times_x = pagemtimes(Phi, x_hat);
 
-        term1 = y - pagemtimes(Phi(:,notj,:), x_hat(notj));
+    for j = 1:N
+        term1 = y - Phi_times_x + Phi(:,j,:) * x_hat(j);
 
         z_j0 = sum(-0.5 * beta_hat .* vecnorm(term1             ).^2, 3);
         z_j1 = sum(-0.5 * beta_hat .* vecnorm(term1 - Phi(:,j,:)).^2, 3) + eta_c_to_r(1);
