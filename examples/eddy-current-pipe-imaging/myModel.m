@@ -11,17 +11,17 @@ pipe = struct('sigma',3.774e7, 'mur',1);
 pipe.inner_diameter = 21e-3;
 pipe.outer_diameter = 25e-3;
 
-num_sensors = 10;
+num_sensors = 40;
 phi = linspace(0, 2*pi, num_sensors+1); phi = phi(1:end-1);
 sensors.placement_phi = phi;
-sensors.placement_rho = 6e-3 * ones(size(phi));
+sensors.placement_rho = 8.5e-3 * ones(size(phi));
 
 comsol.truncate_length = 100e-3;
 comsol.sensor_size = 1e-3;
 
 rho = linspace(10.5e-3, 12.5e-3, 5);
 phi = linspace(0, 2*pi, 121);
-z = (-10:0.5:-6) * 1e-3;
+z = (-8:0.5:-4) * 1e-3;
 [voxel_corners_1, voxel_volumes_1, gauss_nodes_1] = buildVoxels(rho, phi, z);
 [voxel_corners_2, voxel_volumes_2, gauss_nodes_2] = buildVoxels(rho, phi, flip(-z));
 voxel_corners = [voxel_corners_1 voxel_corners_2];

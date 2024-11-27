@@ -31,6 +31,7 @@ if isempty(sensor_num)
 else
     C = vecnorm(Phi(sensor_num,:,k), 2,1);
 end
+max_C = max(C, [], 'all');
 
 rho = unique(voxels_corner(1,:));
 phi = unique(voxels_corner(2,:));
@@ -56,6 +57,7 @@ for i = 1:length(rho)-1
 
     surf(x1_, y1_, z1_, C_layer_1, 'LineStyle','none')
     surf(x2_, y2_, z2_, C_layer_2, 'LineStyle','none')
+    clim([0 max_C])
     axis equal off
     view(-30,30)
     camtarget([0 0 0])
