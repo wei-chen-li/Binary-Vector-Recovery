@@ -13,10 +13,12 @@ coil.type = 'arbitrary';
 coil.B  = @(x,y,z) B_func (r,J,dv, x,y,z);
 coil.Bz = @(x,y,z) Bz_func(r,J,dv, x,y,z);
 
-plate = struct('sigma',3.774e7, 'mur',1, 'thickness',2e-3); % Aluminum
+plate = {};
+plate{1} = struct('sigma',3.774e7, 'mur',1, 'thickness',1e-3); % Aluminum
+plate{2} = struct('sigma',5.998e7, 'mur',1, 'thickness',1e-3); % Copper
 
-x = linspace(-14e-3, 14e-3, 8);
-y = linspace(-14e-3, 14e-3, 8);
+x = linspace(-14e-3, 14e-3, 29);
+y = linspace(-14e-3, 14e-3, 29);
 z = 0.605e-3;
 [x,y,z] = ndgrid(x, y, z);
 sensors.positions = [reshape(x,1,[]); reshape(y,1,[]); reshape(z,1,[])];
@@ -28,8 +30,20 @@ y = linspace(-15e-3, 15e-3, 61);
 z = linspace(-2e-3, 0, 5);
 mesh = BuildHexMesh(x, y, z, 1);
 
-sigma = ones(1, size(mesh.elems_center,2)) * plate.sigma;
-mur   = ones(1, size(mesh.elems_center,2)) * plate.mur;
+sigma = zeros(1, size(mesh.elems_center,2));
+mur   = zeros(1, size(mesh.elems_center,2));
+for j = 1:size(mesh.elems_center,2)
+    elem_center = mesh.elems_center(:,j);
+    z = 0;
+    for k = 1:length(plate)
+        z = z - plate{k}.thickness;
+        if elem_center(3) > z
+            sigma(j) = plate{k}.sigma;
+            mur(j)   = plate{k}.mur;
+            break
+        end
+    end
+end
 
 comsol.truncate_width = 150e-3; % (m)
 comsol.truncate_maxz  =  60e-3; % (m)
@@ -231,8 +245,7 @@ end
 
 function [S_sigma, S_mu] = ComputeSensitivity(plate, gauss_points, gauss_weights, coil, sensor_positions, sensor_axes, freq)
 
-layers = {};
-layers{end+1} = plate;
+layers = plate;
 layers{end+1} = struct('sigma',0, 'mur',1, 'thickness',Inf); % air
 
 omega = 2*pi * freq;
